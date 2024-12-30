@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import toast, { Toaster } from 'react-hot-toast';
 
 interface FormData {
   name: string;
@@ -22,6 +23,8 @@ export default function HireMe() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const loadingToast = toast.loading('Sending your enquiry...');
+    
     try {
       const response = await fetch('/api/send-email', {
         method: 'POST',
@@ -35,8 +38,13 @@ export default function HireMe() {
         throw new Error('Failed to send email');
       }
 
+      toast.dismiss(loadingToast);
+      toast.success('Thanks for reaching out! I\'ll get back to you soon.', {
+        duration: 5000,
+        icon: '👋',
+      });
+
       setIsOpen(false);
-      // Reset form
       setFormData({
         name: '',
         email: '',
@@ -45,21 +53,56 @@ export default function HireMe() {
       });
     } catch (error) {
       console.error('Error sending email:', error);
-      alert('Failed to send enquiry. Please try again.');
+      toast.dismiss(loadingToast);
+      toast.error('Failed to send enquiry. Please try again.', {
+        duration: 5000,
+      });
     }
   };
 
   return (
     <section className="mb-16">
+      <Toaster position="bottom-right" toastOptions={{
+        style: {
+          color: '#fff',
+          padding: '16px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        },
+        success: {
+          iconTheme: {
+            primary: '#fff',
+            secondary: '#4285f4',
+          },
+          style: {
+            background: '#4285f4',
+          },
+        },
+        error: {
+          iconTheme: {
+            primary: '#fff',
+            secondary: '#ff4444',
+          },
+          style: {
+            background: '#ff4444',
+          },
+        },
+        loading: {
+          style: {
+            background: '#666',
+          },
+        },
+      }} />
+      
       <h2 className="text-2xl font-bold mb-6">Want to Work Together?</h2>
       
       <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
         onClick={() => setIsOpen(true)}
-        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors"
+        className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition-colors"
       >
-        Click here to enquire
+        Get in Touch
       </motion.button>
 
       {/* Modal */}

@@ -1,16 +1,26 @@
 import { Resend } from 'resend';
 import { NextResponse } from 'next/server';
 
-const resend = new Resend('re_Zw91QHzS_5vgPu83mVRhh8znRH4DgzJXb');
+const resend = new Resend('');
 
 export async function POST(request: Request) {
   try {
     const { name, email, company, projectDetails } = await request.json();
+    
+    // Get the current date and format it
+    const date = new Date().toLocaleDateString('en-AU', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
 
     await resend.emails.send({
-      from: 'emails@oskarfranttiglen.com',
+      from: 'enquiries@oskarfranttiglen.com',
       to: 'oskarfranttiglen@gmail.com',
-      subject: `New Project Enquiry from ${name}`,
+      subject: `New Project Enquiry from ${name}${company ? ` - ${company}` : ''}`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -24,8 +34,8 @@ export async function POST(request: Request) {
                 line-height: 1.6;
                 margin: 0;
                 padding: 0;
-                background-color: #1a1a1a;
-                color: #ffffff;
+                background-color: #ffffff;
+                color: #333333;
               }
               .container {
                 max-width: 600px;
@@ -35,12 +45,12 @@ export async function POST(request: Request) {
               .header {
                 text-align: center;
                 padding: 20px 0;
-                border-bottom: 1px solid #333;
+                border-bottom: 1px solid #eaeaea;
               }
               .logo {
                 font-size: 24px;
                 font-weight: bold;
-                color: #ffffff;
+                color: #333333;
               }
               .content {
                 padding: 20px 0;
@@ -50,7 +60,7 @@ export async function POST(request: Request) {
               }
               .label {
                 font-weight: bold;
-                color: #4285f4;
+                color: #666666;
                 text-transform: uppercase;
                 font-size: 12px;
                 letter-spacing: 1px;
@@ -58,18 +68,36 @@ export async function POST(request: Request) {
               .value {
                 margin-top: 5px;
                 padding: 10px;
-                background-color: #2a2a2a;
+                background-color: #f5f5f5;
                 border-radius: 4px;
               }
               .footer {
                 text-align: center;
                 padding: 20px 0;
-                border-top: 1px solid #333;
+                border-top: 1px solid #eaeaea;
                 font-size: 12px;
-                color: #888;
+                color: #666666;
               }
-              .highlight {
-                color: #4285f4;
+              .badge {
+                display: inline-block;
+                padding: 4px 8px;
+                background-color: #007bff;
+                color: white;
+                border-radius: 12px;
+                font-size: 12px;
+                margin-top: 8px;
+              }
+              .timestamp {
+                color: #666666;
+                font-size: 14px;
+                margin-bottom: 16px;
+              }
+              .contact-info {
+                background-color: #f8f9fa;
+                border-radius: 8px;
+                padding: 16px;
+                margin: 20px 0;
+                border-left: 4px solid #007bff;
               }
             </style>
           </head>
@@ -78,37 +106,50 @@ export async function POST(request: Request) {
               <div class="header">
                 <div class="logo">Oskar Frantti Glen</div>
                 <div>Full Stack Web Developer</div>
+                <div class="badge">New Enquiry</div>
               </div>
               
               <div class="content">
-                <h2 style="color: #4285f4;">New Project Enquiry</h2>
+                <div class="timestamp">Received on ${date}</div>
+                <h2 style="color: #007bff;">New Project Enquiry</h2>
                 
-                <div class="field">
-                  <div class="label">From</div>
-                  <div class="value">${name}</div>
+                <div class="contact-info">
+                  <div class="field">
+                    <div class="label">From</div>
+                    <div class="value">${name}</div>
+                  </div>
+                  
+                  <div class="field">
+                    <div class="label">Email</div>
+                    <div class="value"><a href="mailto:${email}" style="color: #4285f4;">${email}</a></div>
+                  </div>
+                  
+                  ${company ? `
+                  <div class="field">
+                    <div class="label">Company</div>
+                    <div class="value">${company}</div>
+                  </div>
+                  ` : ''}
                 </div>
-                
-                <div class="field">
-                  <div class="label">Email</div>
-                  <div class="value">${email}</div>
-                </div>
-                
-                ${company ? `
-                <div class="field">
-                  <div class="label">Company</div>
-                  <div class="value">${company}</div>
-                </div>
-                ` : ''}
-                
+
                 <div class="field">
                   <div class="label">Project Details</div>
-                  <div class="value">${projectDetails}</div>
+                  <div class="value" style="white-space: pre-wrap;">${projectDetails}</div>
+                </div>
+
+                <div class="field">
+                  <div class="label">Quick Actions</div>
+                  <div class="value">
+                    <a href="mailto:${email}?subject=Re: Your Project Enquiry" style="color: #4285f4; display: block; margin-bottom: 8px;">↪ Reply to ${name}</a>
+                    <a href="https://calendar.google.com/calendar/u/0/r/eventedit?text=Meeting+with+${encodeURIComponent(name)}${company ? `+from+${encodeURIComponent(company)}` : ''}&details=${encodeURIComponent(projectDetails)}" style="color: #4285f4; display: block;">📅 Schedule Meeting</a>
+                  </div>
                 </div>
               </div>
               
               <div class="footer">
                 <p>📍 Melbourne, Australia</p>
                 <p>Building Real Products for Real Clients, Not Just More Projects</p>
+                <p style="font-size: 11px; margin-top: 16px;">This enquiry was sent through your portfolio website</p>
               </div>
             </div>
           </body>
